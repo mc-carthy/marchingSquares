@@ -2,20 +2,20 @@
 
 public class VoxelStencil : MonoBehaviour {
 
-	private bool fillType;
-	private int centerX, centerY, radius;
+	protected bool fillType;
+	protected int centerX, centerY, radius;
 
-	public void Initialise (bool fillType, int radius) {
+	public virtual void Initialise (bool fillType, int radius) {
 		this.fillType = fillType;
 		this.radius = radius;
 	}
 
-	public void SetCenter (int x, int y) {
+	public virtual void SetCenter (int x, int y) {
 		centerX = x;
 		centerY = y;
 	}
 
-	public bool Apply (int x, int y) {
+	public virtual bool Apply (int x, int y, bool voxel) {
 		return fillType;
 	}
 

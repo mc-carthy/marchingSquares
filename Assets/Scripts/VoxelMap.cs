@@ -12,13 +12,17 @@ public class VoxelMap : MonoBehaviour {
 
 	private VoxelGrid[] chunks;
 
+	private VoxelStencil[] stencils = { new VoxelStencil (), new VoxelStencilCircle () };
+
 	private float chunkSize, voxelSize, halfSize;
 
 	private static string[] fillTypeNames = { "Filled", "Empty" };
 
 	private static string[] radiusNames = { "0", "1", "2", "3", "4", "5" };
 
-	private int fillTypeIndex, radiusIndex;
+	private static string[] stencilNames = { "Square", "Circle" };
+
+	private int fillTypeIndex, radiusIndex, stencilIndex;
 
 	private void Awake () {
 		halfSize = size / 2f;
@@ -81,7 +85,7 @@ public class VoxelMap : MonoBehaviour {
 		//Debug.Log (voxelX + ", " + voxelY);
 		//Debug.Log(voxelX + ", " + voxelY + " in chunk " + chunkX + ", " + chunkY);
 
-		VoxelStencil activeStencil = new VoxelStencil ();
+		VoxelStencil activeStencil = stencils[stencilIndex];
 		activeStencil.Initialise (fillTypeIndex == 0, radiusIndex);
 		int voxelYOffset = yStart * voxelResolution;
 		for (int y = yStart; y <= yEnd; y++) {
@@ -102,6 +106,8 @@ public class VoxelMap : MonoBehaviour {
 		fillTypeIndex = GUILayout.SelectionGrid (fillTypeIndex, fillTypeNames, 2);
 		GUILayout.Label ("Radius");
 		radiusIndex = GUILayout.SelectionGrid (radiusIndex, radiusNames, 6);
+		GUILayout.Label ("Stencil");
+		stencilIndex = GUILayout.SelectionGrid (stencilIndex, stencilNames, 2);
 		GUILayout.EndArea();
 	}
 }
