@@ -1,5 +1,5 @@
 ﻿using UnityEngine;
-using System.Collections;
+using System.Collections.Generic;
 
 [SelectionBase]
 public class VoxelGrid : MonoBehaviour {
@@ -7,14 +7,18 @@ public class VoxelGrid : MonoBehaviour {
 	public int resolution;
 	public GameObject voxelPrefab;
 
-	private bool[] voxels;
+	private Voxel[] voxels;
 	private float voxelSize;
 	private Material[] voxelMaterials;
+
+	private Mesh mesh;
+	private List<Vector3> vertices;
+	private List<int> triangles;
 
 	public void Initialize (int resolution, float size) {
 		this.resolution = resolution;
 		voxelSize = size / resolution;
-		voxels = new bool[resolution * resolution];
+		voxels = new Voxel[resolution * resolution];
 		voxelMaterials = new Material[voxels.Length];
 
 		for (int i = 0, y = 0; y < resolution; y++) {
@@ -22,15 +26,20 @@ public class VoxelGrid : MonoBehaviour {
 				CreateVoxel (i, x, y);
 			}
 		}
-		SetVoxelColors ();
+		GetComponent<MeshFilter> ().mesh = mesh = new Mesh ();
+		mesh.name = "VoxelGrid mesh";
+		vertices = new List<Vector3> ();
+		triangles = new List<int> ();
+		Refresh ();
 	}
 
 	private void CreateVoxel (int i, int x, int y) {
 		GameObject o = (GameObject)Instantiate (voxelPrefab);
 		o.transform.SetParent (transform);
-		o.transform.localPosition = new Vector3 ((x + 0.5f) * voxelSize, (y + 0.5f) * voxelSize);
-		o.transform.localScale = Vector3.one * voxelSize * 0.9f;
+		o.transform.localPosition = new Vector3 ((x + 0.5f) * voxelSize, (y + 0.5f) * voxelSize, -0.01f);
+		o.transform.localScale = Vector3.one * voxelSize * 0.1f;
 		voxelMaterials [i] = o.GetComponent<MeshRenderer> ().material;
+		voxels [i] = new Voxel (x, y, voxelSize);
 	}
 
 	public void Apply (VoxelStencil stencil) {
@@ -54,16 +63,91 @@ public class VoxelGrid : MonoBehaviour {
 		for (int y = yStart; y <= yEnd; y++) {
 			int i = y * resolution + xStart;
 			for (int x = xStart; x <= xEnd; x++, i++) {
-				voxels [i] = stencil.Apply (x, y, voxels[i]);
+				voxels [i].state = stencil.Apply (x, y, voxels[i].state	);
 			}
 		}
 
-		SetVoxelColors ();
+		Refresh ();
 	}
 
 	private void SetVoxelColors () {
 		for (int i = 0; i < voxels.Length; i++) {
-			voxelMaterials [i].color = voxels [i] ? Color.black : Color.white;
+			voxelMaterials [i].color = voxels [i].state ? Color.black : Color.white;
 		}
+	}
+
+	private void Refresh () {
+		SetVoxelColors ();
+		Triangulate ();
+	}
+
+	private void Triangulate () {
+		vertices.Clear ();
+		triangles.Clear ();
+		mesh.Clear ();
+
+		TriangulateCellRows ();
+
+		mesh.vertices = vertices.ToArray ();
+		mesh.triangles = triangles.ToArray ();
+	}
+
+	private void TriangulateCellRows () {
+		int cells = resolution - 1;
+		for (int i = 0, y = 0; y < cells; y++, i++) {
+			for (int x = 0; x < cells; x++, i++) {
+				TriangulateCell (
+					voxels[i],
+					voxels[i + 1],
+					voxels[i + resolution],
+					voxels[i + resolution + 1]
+				);
+			}
+		}
+	}
+
+	private void TriangulateCell (Voxel a, Voxel b, Voxel c, Voxel d) {
+		int cellType = 0;
+
+		if (a.state) {
+			cellType |= 1;
+		}
+		if (b.state) {
+			cellType |= 2;
+		}
+		if (c.state) {
+			cellType |= 4;
+		}
+		if (d.state) {
+			cellType |= 8;
+		}
+
+		switch (cellType) {
+		case 0:
+			return;
+
+		case 1:
+			AddTriangle (a.position, a.yEdgePosition, a.xEdgePosition);
+			break;
+		case 2:
+			AddTriangle (b.position, a.xEdgePosition, b.yEdgePosition);
+			break;
+		case 4:
+			AddTriangle (c.position, c.xEdgePosition, a.yEdgePosition);
+			break;
+		case 8:
+			AddTriangle (d.position, b.yEdgePosition, c.xEdgePosition);
+			break;
+		}
+	}
+
+	private void AddTriangle(Vector3 a, Vector3 b, Vector3 c) {
+		int vertexIndex = vertices.Count;
+		vertices.Add (a);
+		vertices.Add (b);
+		vertices.Add (c);
+		triangles.Add (vertexIndex);
+		triangles.Add (vertexIndex + 1);
+		triangles.Add (vertexIndex + 2);
 	}
 }
