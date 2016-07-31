@@ -219,6 +219,11 @@ public class VoxelGrid : MonoBehaviour {
 			dummyY = dummySwap;
 			TriangulateCell (voxels[x + offset], voxels[x + offset + 1], dummyT, dummyY);
 		}
+
+		if (xNeighbour != null) {
+			dummyT.BecomeXYDummyOf (xyNeighbour.voxels[0], gridSize);
+			TriangulateCell (voxels [voxels.Length - 1], dummyX, dummyY, dummyT);
+		}
 	}
 
 	private void AddTriangle (Vector3 a, Vector3 b, Vector3 c) {
