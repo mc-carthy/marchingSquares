@@ -56,6 +56,15 @@ public class VoxelMap : MonoBehaviour {
 		chunk.transform.SetParent (transform);
 		chunk.transform.localPosition = new Vector3 (x * chunkSize - halfSize, y * chunkSize - halfSize);
 		chunks [i] = chunk;
+		if (x > 0) {
+			chunks [i - 1].xNeighbour = chunk;
+		}
+		if (y > 0) {
+			chunks [i - chunkResolution].yNeighbour = chunk;
+			if (x > 0) {
+				chunks [i - chunkResolution - 1].xyNeighbour = chunk;
+			}
+		}
 	}
 
 	private void EditVoxels (Vector3 point) {
@@ -87,16 +96,16 @@ public class VoxelMap : MonoBehaviour {
 
 		VoxelStencil activeStencil = stencils[stencilIndex];
 		activeStencil.Initialise (fillTypeIndex == 0, radiusIndex);
-		int voxelYOffset = yStart * voxelResolution;
-		for (int y = yStart; y <= yEnd; y++) {
-			int i = y * chunkResolution + xStart;
-			int voxelXOffset = xStart * voxelResolution;
-			for (int x = xStart; x <= xEnd; x++, i++) {
+		int voxelYOffset = yEnd * voxelResolution;
+		for (int y = yEnd; y >= yStart; y--) {
+			int i = y * chunkResolution + xEnd;
+			int voxelXOffset = xEnd * voxelResolution;
+			for (int x = xEnd; x >= xStart; x--, i--) {
 				activeStencil.SetCenter (centerX - voxelXOffset, centerY - voxelYOffset);
 				chunks [i].Apply (activeStencil);
-				voxelXOffset += voxelResolution;
+				voxelXOffset -= voxelResolution;
 			}
-			voxelYOffset += voxelResolution;
+			voxelYOffset -= voxelResolution;
 		}
 	}
 

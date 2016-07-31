@@ -17,4 +17,18 @@ public class Voxel {
 		yEdgePosition = position;
 		yEdgePosition.y += size * 0.5f;
 	}
+
+	public Voxel () {
+
+	}
+
+	public void BecomeXDummyOf (Voxel voxel, float offset) {
+		state = voxel.state;
+		position = voxel.position;
+		xEdgePosition = voxel.xEdgePosition;
+		yEdgePosition = voxel.yEdgePosition;
+		position.x += offset;
+		xEdgePosition.x += offset;
+		yEdgePosition.x += offset;
+	}
 }

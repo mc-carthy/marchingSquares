@@ -7,19 +7,28 @@ public class VoxelGrid : MonoBehaviour {
 	public int resolution;
 	public GameObject voxelPrefab;
 
+	public VoxelGrid xNeighbour, yNeighbour, xyNeighbour;
+
 	private Voxel[] voxels;
-	private float voxelSize;
+	private float voxelSize, gridSize;
 	private Material[] voxelMaterials;
 
 	private Mesh mesh;
 	private List<Vector3> vertices;
 	private List<int> triangles;
 
+	private Voxel dummyX, dummyY, dummyT;
+
 	public void Initialize (int resolution, float size) {
 		this.resolution = resolution;
+		gridSize = size;
 		voxelSize = size / resolution;
 		voxels = new Voxel[resolution * resolution];
 		voxelMaterials = new Material[voxels.Length];
+
+		dummyX = new Voxel ();
+		dummyY = new Voxel ();
+		dummyT = new Voxel ();
 
 		for (int i = 0, y = 0; y < resolution; y++) {
 			for (int x = 0; x < resolution; x++, i++) {
@@ -86,6 +95,10 @@ public class VoxelGrid : MonoBehaviour {
 		triangles.Clear ();
 		mesh.Clear ();
 
+		if (xNeighbour != null) {
+			dummyX.BecomeXDummyOf (xNeighbour.voxels [0], gridSize);
+		}
+
 		TriangulateCellRows ();
 
 		mesh.vertices = vertices.ToArray ();
@@ -102,6 +115,9 @@ public class VoxelGrid : MonoBehaviour {
 					voxels[i + resolution],
 					voxels[i + resolution + 1]
 				);
+			}
+			if (xNeighbour != null) {
+				TriangulateGapCell (i);
 			}
 		}
 	}
@@ -177,6 +193,14 @@ public class VoxelGrid : MonoBehaviour {
 			AddTriangle(d.position, b.yEdgePosition, c.xEdgePosition);
 			break;
 		}
+	}
+
+	private void TriangulateGapCell (int i) {
+		Voxel dummySwap = dummyT;
+		dummySwap.BecomeXDummyOf (xNeighbour.voxels [i + 1], gridSize);
+		dummyT = dummyX;
+		dummyX = dummySwap;
+		TriangulateCell (voxels [i], dummyT, voxels [i + resolution], dummyX);
 	}
 
 	private void AddTriangle (Vector3 a, Vector3 b, Vector3 c) {
