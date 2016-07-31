@@ -146,13 +146,35 @@ public class VoxelGrid : MonoBehaviour {
 			AddQuad (a.position, c.position, c.xEdgePosition, a.xEdgePosition);
 			break;
 		case 10:
-			AddQuad (a.xEdgePosition, c.xEdgePosition, d.position, b.yEdgePosition);
+			AddQuad (a.xEdgePosition, c.xEdgePosition, d.position, b.position);
 			break;
 		case 12:
 			AddQuad (a.yEdgePosition, c.position, d.position, b.yEdgePosition);
 			break;
 		case 15:
 			AddQuad (a.position, c.position, d.position, b.position);
+			break;
+
+		case 7:
+			AddPentagon(a.position, c.position, c.xEdgePosition, b.yEdgePosition, b.position);
+			break;
+		case 11:
+			AddPentagon(b.position, a.position, a.yEdgePosition, c.xEdgePosition, d.position);
+			break;
+		case 13:
+			AddPentagon(c.position, d.position, b.yEdgePosition, a.xEdgePosition, a.position);
+			break;
+		case 14:
+			AddPentagon(d.position, b.position, a.xEdgePosition, a.yEdgePosition, c.position);
+			break;
+		
+		case 6:
+			AddTriangle(b.position, a.xEdgePosition, b.yEdgePosition);
+			AddTriangle(c.position, c.xEdgePosition, a.yEdgePosition);
+			break;
+		case 9:
+			AddTriangle(a.position, a.yEdgePosition, a.xEdgePosition);
+			AddTriangle(d.position, b.yEdgePosition, c.xEdgePosition);
 			break;
 		}
 	}
@@ -179,5 +201,23 @@ public class VoxelGrid : MonoBehaviour {
 		triangles.Add (vertexIndex);
 		triangles.Add (vertexIndex + 2);
 		triangles.Add (vertexIndex + 3);
+	}
+
+	private void AddPentagon (Vector3 a, Vector3 b, Vector3 c, Vector3 d, Vector3 e) {
+		int vertexIndex = vertices.Count;
+		vertices.Add (a);
+		vertices.Add (b);
+		vertices.Add (c);
+		vertices.Add (d);
+		vertices.Add (e);
+		triangles.Add (vertexIndex);
+		triangles.Add (vertexIndex + 1);
+		triangles.Add (vertexIndex + 2);
+		triangles.Add (vertexIndex);
+		triangles.Add (vertexIndex + 2);
+		triangles.Add (vertexIndex + 3);
+		triangles.Add (vertexIndex);
+		triangles.Add (vertexIndex + 3);
+		triangles.Add (vertexIndex + 4);
 	}
 }
